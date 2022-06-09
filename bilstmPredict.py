@@ -4,7 +4,7 @@ import sys
 from tqdm import tqdm
 from utils import *
 import copy
-device = 'cuda:1' if torch.cuda.is_available() else 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 # device = 'cpu'
 BATCH_SIZE = 64
 
@@ -13,8 +13,6 @@ def prediction(dataloader, out_file, model, i2t):
     f = open(out_file, 'w')
     with torch.no_grad():
         for batch, (X, X_index, sentences) in enumerate(dataloader):
-            # if batch <= 1397:
-            #     continue
             x_word_index = None
             if model.rep == 'c':
                 X = (X[0].to(device), X[1].to(device), X[2].to(device))
@@ -39,23 +37,29 @@ def prediction(dataloader, out_file, model, i2t):
 
 
 if __name__ == '__main__':
-    # rep = sys.argv[1]
-    # modelFile = sys.argv[2]
-    # inputFile = sys.argv[3]
-    # mapFile = sys.argv[4]
-    rep = 'd'
-    modelFile = 'model_ner'
-    inputFile = 'ner/test'
-    mapFile = 'mapFile'
+    rep = sys.argv[1]
+    modelFile = sys.argv[2]
+    inputFile = sys.argv[3]
+    mapFile = sys.argv[4]
+    predictionFile = sys.argv[5]
+    NER = int(sys.argv[6])
+
     # LOAD MODEL
-    kwargs, state = torch.load(modelFile)
-    # kwargs['rep'] = rep
+    kwargs, state = torch.load(modelFile,  map_location=device)
+    if rep == 'a':
+        kwargs['embedding_char_dim'] = 100
+    if rep == 'b':
+        kwargs['embedding_char_dim'] = 100 if NER else 30
+    if rep == 'c':
+        kwargs['embedding_char_dim'] = 100 if not NER else 30
+    if rep == 'd':
+        kwargs['embedding_char_dim'] = 30
     model = BiLSTMTagger(**kwargs)
     model.load_state_dict(state)
     model = model.to(device)
 
     # Load mapFile
-    dict = torch.load(mapFile)
+    dict = torch.load(mapFile, map_location=device)
     w2i = dict['w2i']
     c2i = dict['c2i']
     t2i = dict['t2i']
@@ -71,7 +75,7 @@ if __name__ == '__main__':
 
     if rep == 'b':
         sentences_raw_dev = read_test_data(inputFile)
-        sentences_dev_id, tags_dev_id, sentences_dev_char_id_pad, len_word_dev = sent_char_to_index(copy.deepcopy(sentences_raw_dev), c2i)
+        sentences_dev_id, sentences_dev_char_id_pad, len_word_dev = sent_char_to_index(copy.deepcopy(sentences_raw_dev), c2i)
         dev_set = MyDataset(sentences_dev_char_id_pad, sentences_raw_dev)
         dev_dataloader = DataLoader(dev_set, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_padding_char_test)
 
@@ -95,7 +99,8 @@ if __name__ == '__main__':
         dev_dataloader = DataLoader(dev_set, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_cat_word_char_test)
 
     i2t = {i: tag for tag, i in t2i.items()}
-    prediction(dev_dataloader, 'test.ner', model, i2t)
+    prediction(dev_dataloader, predictionFile, model, i2t)
+    print('SUCCEED PREDICTION\n')
 
 
 

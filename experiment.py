@@ -17,7 +17,7 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 EPOCHS = 200
 BATCH_SIZE = 64 #64
 EMB_DIM = LSTM_OUTPUT_DIM = 30
-HIDDEN_LAYER = 25
+HIDDEN_LAYER = 50
 print(f'BATCH SIZE : {BATCH_SIZE}')
 
 class MyDataset(Dataset):

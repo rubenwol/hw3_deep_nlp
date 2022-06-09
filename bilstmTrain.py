@@ -9,114 +9,13 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
 import torch
 import torch.optim.lr_scheduler as SC
+import os
 
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-rep = sys.argv[1]
-trainFile = sys.argv[2]
-modelFile = sys.argv[3]
-devFile = sys.argv[4]
-mapFile = sys.argv[5]
-NER = int(sys.argv[6])
-print(rep)
-
-
-if rep == 'a' and NER:
-    args = {
-        'EPOCHS': 5,
-        'BATCH_SIZE': 50,
-        'EMB_DIM': 200,
-        'LSTM_OUTPUT_DIM': 200,
-        'P': 0.5,
-        'EMB_CHAR_DIM': 30,
-        'LR': 0.003
-    }
-if rep == 'a' and not NER:
-    args = {
-        'EPOCHS': 5,
-        'BATCH_SIZE': 50,
-        'EMB_DIM': 150,
-        'LSTM_OUTPUT_DIM': 200,
-        'P': 0.5,
-        'EMB_CHAR_DIM': 30,
-        'LR': 1e-3
-    }
-
-if rep == 'b' and NER:
-    args = {
-        'EPOCHS': 5,
-        'BATCH_SIZE': 50,
-        'EMB_DIM': 100,
-        'LSTM_OUTPUT_DIM': 100,
-        'P': 0.5,
-        'EMB_CHAR_DIM': 30,
-        'LR': 0.01
-    }
-if rep == 'b' and not NER:
-    args = {
-        'EPOCHS': 5,
-        'BATCH_SIZE': 50,
-        'EMB_DIM': 15,
-        'LSTM_OUTPUT_DIM': 100,
-        'P': 0.5,
-        'EMB_CHAR_DIM': 15,
-        'LR': 0.01
-    }
-
-if rep == 'c' and NER:
-    args = {
-        'EPOCHS': 5,
-        'BATCH_SIZE': 50,
-        'EMB_DIM': 150,
-        'LSTM_OUTPUT_DIM': 150,
-        'P': 0.5,
-        'EMB_CHAR_DIM': 30,
-        'LR': 0.003
-    }
-if rep == 'c' and not NER:
-    args = {
-        'EPOCHS': 5,
-        'BATCH_SIZE': 50,
-        'EMB_DIM': 150,
-        'LSTM_OUTPUT_DIM': 100,
-        'P': 0.5,
-        'EMB_CHAR_DIM': 30,
-        'LR': 1e-3
-    }
-if rep == 'd' and NER:
-    args = {
-        'EPOCHS': 5,
-        'BATCH_SIZE': 50,
-        'EMB_DIM': 200,
-        'LSTM_OUTPUT_DIM': 200,
-        'P': 0.5,
-        'EMB_CHAR_DIM': 30,
-        'LR': 0.001
-    }
-if rep == 'd' and not NER:
-    args = {
-        'EPOCHS': 5,
-        'BATCH_SIZE': 50,
-        'EMB_DIM': 100,
-        'LSTM_OUTPUT_DIM': 200,
-        'P': 0.5,
-        'EMB_CHAR_DIM': 30,
-        'LR': 0.001
-    }
-
-
-EPOCHS = args['EPOCHS']
-BATCH_SIZE = args['BATCH_SIZE']
-EMB_DIM = args['EMB_DIM']
-LSTM_OUTPUT_DIM = args['LSTM_OUTPUT_DIM']
-P = args['P']
-EMB_CHAR_DIM = args['EMB_CHAR_DIM']
-LR = args['LR']
-
-
 class LSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, batch_size=BATCH_SIZE, bidirectional=False):
+    def __init__(self, input_size, hidden_size, batch_size=50, bidirectional=False):
         super(LSTM, self).__init__()
         self.batch_size = batch_size
         self.D = 2 if bidirectional else 1
@@ -139,7 +38,7 @@ class LSTM(nn.Module):
 
 
 class BiLSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, batch_size=BATCH_SIZE):
+    def __init__(self, input_size, hidden_size, batch_size=50):
         super(BiLSTM, self).__init__()
         self.batch_size = batch_size
         self.hidden_size = hidden_size
@@ -195,6 +94,7 @@ class BiLSTMTagger(nn.Module):
                             'hidden_lstm_dim': hidden_lstm_dim,
                             'output_size': output_size,
                             'p': p,
+                            'embedding_char_dim': embedding_char_dim,
                             'vocab_pref_size': vocab_pref_size,
                             'vocab_suf_size': vocab_suf_size,
                             'vocab_char_size': vocab_char_size
@@ -377,9 +277,78 @@ def collate_cat_word_char(batch):
 
 
 if __name__ == '__main__':
-    # trainFile = sys.argv[2]
-    # modelFile = sys.argv[3]
-    # devFile = sys.argv[4]
+    rep = sys.argv[1]
+    trainFile = sys.argv[2]
+    modelFile = sys.argv[3]
+    devFile = sys.argv[4]
+    mapFile = sys.argv[5]
+    NER = int(sys.argv[6])
+    print(rep)
+
+    if rep == 'a' and NER:
+        args = {'EPOCHS': 5,
+                'BATCH_SIZE': 50,
+                'EMB_DIM': 200,
+                'LSTM_OUTPUT_DIM': 100,
+                'P': 0.5,
+                'EMB_CHAR_DIM': 100,
+                'LR': 0.003}
+
+    if rep == 'a' and not NER:
+        args = {
+            'EPOCHS': 5,
+            'BATCH_SIZE': 50,
+            'EMB_DIM': 200,
+            'LSTM_OUTPUT_DIM': 100,
+            'P': 0.5,
+            'EMB_CHAR_DIM': 100,
+            'LR': 0.003
+        }
+
+    if rep == 'b' and NER:
+        args = {
+            'EPOCHS': 5,
+            'BATCH_SIZE': 50,
+            'EMB_DIM': 200,
+            'LSTM_OUTPUT_DIM': 400,
+            'P': 0.5,
+            'EMB_CHAR_DIM': 100,
+            'LR': 0.01
+        }
+
+    if rep == 'b' and not NER:
+        args = {'EPOCHS': 5,
+                'BATCH_SIZE': 50,
+                'EMB_DIM': 200,
+                'LSTM_OUTPUT_DIM': 400,
+                'P': 0.5,
+                'EMB_CHAR_DIM': 30,
+                'LR': 0.01}
+
+    if rep == 'c' and NER:
+        args = {'EPOCHS': 5, 'BATCH_SIZE': 50, 'EMB_DIM': 200, 'LSTM_OUTPUT_DIM': 100, 'P': 0.5, 'EMB_CHAR_DIM': 30,
+                'LR': 0.003}
+
+    if rep == 'c' and not NER:
+        args = {'EPOCHS': 5, 'BATCH_SIZE': 50, 'EMB_DIM': 200, 'LSTM_OUTPUT_DIM': 100, 'P': 0.5, 'EMB_CHAR_DIM': 100,
+                'LR': 0.003}
+
+    if rep == 'd' and NER:
+        args = {'EPOCHS': 5, 'BATCH_SIZE': 50, 'EMB_DIM': 200, 'LSTM_OUTPUT_DIM': 200, 'P': 0.5, 'EMB_CHAR_DIM': 30,
+                'LR': 0.002}
+
+    if rep == 'd' and not NER:
+        args = {'EPOCHS': 5, 'BATCH_SIZE': 50, 'EMB_DIM': 100, 'LSTM_OUTPUT_DIM': 200, 'P': 0.5, 'EMB_CHAR_DIM': 30,
+                'LR': 0.002}
+
+    EPOCHS = args['EPOCHS']
+    BATCH_SIZE = args['BATCH_SIZE']
+    EMB_DIM = args['EMB_DIM']
+    LSTM_OUTPUT_DIM = args['LSTM_OUTPUT_DIM']
+    P = args['P']
+    EMB_CHAR_DIM = args['EMB_CHAR_DIM']
+    LR = args['LR']
+
     vocab_pref_size = None
     vocab_suf_size = None
     vocab_char_size = None
@@ -487,55 +456,64 @@ if __name__ == '__main__':
         dev_set = create_dataset_cat_word_char(sentences_id_dev, sentences_char_id_pad_dev, tags_id_dev)
         dev_dataloader = DataLoader(dev_set, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_cat_word_char)
 
-    lrs = [0.01, 0.005, 0.002, 0.003, 0.001]
-    best_acc = 0
-    for lr in lrs:
-        args['LR'] = lr
-    # lr = args['LR']
-        start_time = time()
-        model = BiLSTMTagger(rep=rep,
-                             vocab_size=vocab_size,
-                             embedding_dim=EMB_DIM,
-                             hidden_lstm_dim=LSTM_OUTPUT_DIM,
-                             output_size=len(vocab_tags),
-                             embedding_char_dim=EMB_CHAR_DIM,
-                             p=P,
-                             vocab_pref_size=vocab_pref_size,
-                             vocab_suf_size=vocab_suf_size,
-                             vocab_char_size=vocab_char_size)
-        model = model.to(device)
-        loss_fn = nn.NLLLoss()
-        # loss_fn = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(params=model.parameters(), lr=lr)
-        print('*' * 20)
-        print(args)
-        # scheduler = SC.StepLR(optimizer, step_size=2, gamma=0.1)
-        acc_devs_array = []
-        for epoch in range(5):
-            accuracy_devs = train(train_dataloader, model, loss_fn, optimizer)
-            acc_devs_array.extend(accuracy_devs)
-            # if accuracy_dev == 1.0:
-            #     print(f'SUCCES WITH {epoch+1} epochs')
-            #     break
-            # scheduler.step()
-        end_time = time()
-        print(f'program take {end_time - start_time} seconds')
-        task = 'ner' if NER else 'pos'
-        with open(f'dev_acc_{task}_rep_{rep}_lr_{lr}_{args}.json', 'w') as f:
-            json.dump(acc_devs_array, f)
-        accuracy_dev, loss_dev = accuracy_and_loss(dev_dataloader, model, loss_fn)
-        if accuracy_dev > best_acc:
-            # torch.save(model.state_dict(), modelFile)
-            torch.save([model.kwargs, model.state_dict()], modelFile)
-            best_acc = accuracy_dev
+    # emb_dim_list = [100, 200]
+    # emb_char_dim_list = [30, 100]
+    # lstm_output_dim_list = [100, 400]
 
-        torch.save({
-                    'w2i': w2i,
-                    't2i': t2i,
-                    'c2i': c2i,
-                    'pref2i': pref2i,
-                    'suf2i': suf2i
-        }, mapFile)
+    # params = [(a, b, c) for a in emb_dim_list for b in emb_char_dim_list for c in lstm_output_dim_list]
+
+    best_acc = 0
+    # for param in params:
+    #     EMB_DIM = args['EMB_DIM'] = param[0]
+    #     EMB_CHAR_DIM = args['EMB_CHAR_DIM'] = param[1]
+    #     LSTM_OUTPUT_DIM = args['LSTM_OUTPUT_DIM'] = param[2]
+    start_time = time()
+    model = BiLSTMTagger(rep=rep,
+                         vocab_size=vocab_size,
+                         embedding_dim=EMB_DIM,
+                         hidden_lstm_dim=LSTM_OUTPUT_DIM,
+                         output_size=len(vocab_tags),
+                         embedding_char_dim=EMB_CHAR_DIM,
+                         p=P,
+                         vocab_pref_size=vocab_pref_size,
+                         vocab_suf_size=vocab_suf_size,
+                         vocab_char_size=vocab_char_size)
+
+    model = model.to(device)
+    loss_fn = nn.NLLLoss()
+    # loss_fn = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(params=model.parameters(), lr=args['LR'])
+    print('*' * 40)
+    print(args)
+    # scheduler = SC.StepLR(optimizer, step_size=2, gamma=0.1)
+    acc_devs_array = []
+    for epoch in range(5):
+        accuracy_devs = train(train_dataloader, model, loss_fn, optimizer)
+        acc_devs_array.extend(accuracy_devs)
+        # if accuracy_dev == 1.0:
+        #     print(f'SUCCES WITH {epoch+1} epochs')
+        #     break
+        # scheduler.step()
+    print(args)
+    print('*' * 40)
+    end_time = time()
+    print(f'program take {end_time - start_time} seconds')
+    task = 'ner' if NER else 'pos'
+    with open(f'dev_acc/dev_acc_{task}_rep_{rep}_{args}.json', 'w') as f:
+        json.dump(acc_devs_array, f)
+    accuracy_dev, loss_dev = accuracy_and_loss(dev_dataloader, model, loss_fn)
+    if accuracy_dev > best_acc:
+        # torch.save(model.state_dict(), modelFile)
+        torch.save([model.kwargs, model.state_dict()], modelFile)
+        best_acc = accuracy_dev
+
+    torch.save({
+                'w2i': w2i,
+                't2i': t2i,
+                'c2i': c2i,
+                'pref2i': pref2i,
+                'suf2i': suf2i
+    }, mapFile)
 
 
 
