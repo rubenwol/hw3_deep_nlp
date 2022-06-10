@@ -46,14 +46,6 @@ if __name__ == '__main__':
 
     # LOAD MODEL
     kwargs, state = torch.load(modelFile,  map_location=device)
-    if rep == 'a':
-        kwargs['embedding_char_dim'] = 100
-    if rep == 'b':
-        kwargs['embedding_char_dim'] = 100 if NER else 30
-    if rep == 'c':
-        kwargs['embedding_char_dim'] = 100 if not NER else 30
-    if rep == 'd':
-        kwargs['embedding_char_dim'] = 30
     model = BiLSTMTagger(**kwargs)
     model.load_state_dict(state)
     model = model.to(device)

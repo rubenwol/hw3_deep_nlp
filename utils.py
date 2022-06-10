@@ -190,13 +190,13 @@ def sent_to_sent_char(sentences):
 def collate_pading_test(batch):
     (x, sentences) = list(zip(*batch))
     x_pad = pad_sequence(x, batch_first=True, padding_value=0)
-    x_index = [len(x_i)-1 for x_i in x]
+    x_index = [len(x_i) for x_i in x]
     return x_pad, x_index, sentences
 
 def collate_padding_char_test(batch):
     (x, sentences) = list(zip(*batch))
     x_pad = pad_sequence(x, batch_first=True, padding_value=0)
-    x_index = [len(x_i) - 1 for x_i in x]
+    x_index = [len(x_i) for x_i in x]
     x_word_len = torch.LongTensor([[[x_pad_word.count_nonzero()-1] for x_pad_word in x_pad_sent] for x_pad_sent in x_pad]).squeeze()
     return x_pad, (x_index, x_word_len), sentences
 
@@ -207,7 +207,7 @@ def collate_padding_sub_test(batch):
     words_pad = pad_sequence(words, batch_first=True, padding_value=0)
     pref_pad = pad_sequence(pref, batch_first=True, padding_value=0)
     suf_pad = pad_sequence(suf, batch_first=True, padding_value=0)
-    x_index = [len(x_i) - 1 for x_i in words]
+    x_index = [len(x_i) for x_i in words]
     x_pad = (words_pad, pref_pad, suf_pad)
     return x_pad, x_index, sentences
 
@@ -217,7 +217,7 @@ def collate_cat_word_char_test(batch):
     words_pad = pad_sequence(words, batch_first=True, padding_value=0)
     char_pad = pad_sequence(char, batch_first=True, padding_value=0)
     char_word_len = torch.LongTensor([[[char_pad_word.count_nonzero()-1 if char_pad_word.count_nonzero()>0 else 0 ] for char_pad_word in x_pad_sent] for x_pad_sent in char_pad]).squeeze()
-    x_index = [len(x_i) - 1 for x_i in words]
+    x_index = [len(x_i) for x_i in words]
     x_pad = (words_pad, char_pad)
     return x_pad, (x_index, char_word_len), sentences
 

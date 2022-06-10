@@ -236,7 +236,7 @@ def accuracy_and_loss(dataloader, model, loss_fn):
 def collate_pading(batch):
     (x, y) = list(zip(*batch))
     x_pad = pad_sequence(x, batch_first=True, padding_value=0)
-    x_index = [len(x_i)-1 for x_i in x]
+    x_index = [len(x_i) for x_i in x]
     y_pad = pad_sequence(y, batch_first=True, padding_value=len(t2i))
     y_last_index = [len(y_i)-1 for y_i in y]
     return x_pad, y_pad, x_index, y_last_index
@@ -244,7 +244,7 @@ def collate_pading(batch):
 def collate_padding_char(batch):
     (x, y) = list(zip(*batch))
     x_pad = pad_sequence(x, batch_first=True, padding_value=0)
-    x_index = [len(x_i) - 1 for x_i in x]
+    x_index = [len(x_i) for x_i in x]
     x_word_len = torch.LongTensor([[[x_pad_word.count_nonzero()-1] for x_pad_word in x_pad_sent] for x_pad_sent in x_pad]).squeeze()
     y_pad = pad_sequence(y, batch_first=True, padding_value=len(t2i))
     y_last_index = [len(y_i) - 1 for y_i in y]
@@ -258,7 +258,7 @@ def collate_padding_sub(batch):
     pref_pad = pad_sequence(pref, batch_first=True, padding_value=0)
     suf_pad = pad_sequence(suf, batch_first=True, padding_value=0)
     y_pad = pad_sequence(y, batch_first=True, padding_value=len(t2i))
-    x_index = [len(x_i) - 1 for x_i in words]
+    x_index = [len(x_i) for x_i in words]
     y_last_index = [len(y_i) - 1 for y_i in y]
     x_pad = (words_pad, pref_pad, suf_pad)
     return x_pad, y_pad, x_index, y_last_index
@@ -270,7 +270,7 @@ def collate_cat_word_char(batch):
     char_pad = pad_sequence(char, batch_first=True, padding_value=0)
     char_word_len = torch.LongTensor([[[char_pad_word.count_nonzero()-1] for char_pad_word in x_pad_sent] for x_pad_sent in char_pad]).squeeze()
     y_pad = pad_sequence(y, batch_first=True, padding_value=len(t2i))
-    x_index = [len(x_i) - 1 for x_i in words]
+    x_index = [len(x_i) for x_i in words]
     y_last_index = [len(y_i) - 1 for y_i in y]
     x_pad = (words_pad, char_pad)
     return x_pad, y_pad, (x_index, char_word_len), y_last_index
